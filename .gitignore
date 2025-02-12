@@ -1,0 +1,62 @@
+# Visual Studio
+.vscode/
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+*.DotSettings.user
+
+# Ignore directories generated on build
+bin/
+obj/
+
+# Logs
+*.log
+logs/
+
+# Dump files
+*.dmp
+
+# Common extension file
+*.db
+*.session
+*.cache
+*.pdb
+
+# Security
+*.snk
+*.pfx
+.env
+appsettings.json
+appsettings*.json
+Secrets/
+
+# Resharper
+_ReSharper*/ 
+*.DotSettings
+
+# Code Coverage
+*.coverage
+*.coveragexml
+
+# Publish
+publish/
+*.publishsettings
+
+# IIS
+*.vspscc
+sql/
+
+# TODOs
+.todo
+
+# Deployment
+node_modules/
+bower_components/
+.DS_Store
+.idea
+.idea/
