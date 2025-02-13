@@ -24,10 +24,43 @@ public class Contact
 
     [JsonPropertyName("country")] public string? Country { get; set; }
 
-    [JsonPropertyName("address")]
-    public string Address => AddressGenerator.GenerateAddress(Street, City, State, PostalCode, Country);
+    [JsonPropertyName("address")] public string? Address { get; set; }
     
     [JsonPropertyName("dateOfBirth")] public DateTime? DateOfBirth { get; set; }
+    
+    [JsonPropertyName("age")] public int? Age { get; set; }
+    
+    [JsonPropertyName("homePhone")] 
+    [Phone(ErrorMessage = "Invalid phone number")]
+    public string? HomePhone { get; set; }
+    
+    [JsonPropertyName("mobilePhone")] 
+    [Phone(ErrorMessage = "Invalid phone number")]
+    public string? MobilePhone { get; set; }
 
-    public int? Age => DateOfBirth.HasValue ? DateTimeUtils.CalculateAge(DateOfBirth.Value) : null;
+    [JsonPropertyName("website")] 
+    [Url(ErrorMessage = "Invalid URL")]
+    public string? Website { get; set; }
+    
+    [JsonPropertyName("createdAt")] 
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    [JsonPropertyName("modifiedAt")] 
+    public DateTime ModifiedAt { get; set; } = DateTime.UtcNow; 
+
+    public void GenerateAddress()
+    {
+        if (string.IsNullOrEmpty(Address) && !string.IsNullOrEmpty(Street))
+        {
+            Address = AddressGenerator.GenerateAddress(Street, City, State, PostalCode, Country);
+        }
+    }
+    
+    public void GenerateAge()
+    {
+        if (DateOfBirth.HasValue)
+        {
+            Age = DateTimeUtils.CalculateAge(DateOfBirth.Value);
+        }
+    }
 }

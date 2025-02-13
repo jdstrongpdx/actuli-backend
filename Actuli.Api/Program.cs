@@ -1,12 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
-
 using Actuli.Api.DbContext;
 using Actuli.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
-var environment = builder.Environment;
+var isDevelopment = builder.Environment.IsDevelopment();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -49,33 +48,31 @@ builder.Services.AddDbContext<ApplicationUserDbContext>(options =>
 
 builder.Services.AddControllers();
 
-// Add Swagger for API documentation
-if (environment.IsDevelopment())
+// Configure CORS for React App and Add Swagger for API documentation
+if (isDevelopment)
 {
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowReactApp", policy =>
+        {
+            policy.AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        });
+    });
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 }
 
-// Configure CORS for React App 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowReactApp", policy =>
-    {
-        policy.WithOrigins("http://localhost:3000") // Replace with React app URL
-            .AllowAnyMethod() // Allow GET, POST, PUT, DELETE, etc.
-            .AllowAnyHeader() // Allow all headers
-            .AllowCredentials(); // Allow cookies/credentials
-    });
-});
-
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+if (isDevelopment)
 {
     // Since IdentityModel version 5.2.1 (or since Microsoft.AspNetCore.Authentication.JwtBearer version 2.2.0),
     // Personal Identifiable Information is not written to the logs by default, to be compliant with GDPR.
     // For debugging/development purposes, one can enable additional detail in exceptions by setting IdentityModelEventSource.ShowPII to true.
     // Microsoft.IdentityModel.Logging.IdentityModelEventSource.ShowPII = true;
+    app.UseCors("AllowReactApp");
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -84,13 +81,10 @@ else
 {
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
 
-// Enable CORS policy for React frontend
-app.UseCors("AllowReactApp");
-
-// app.UseHttpsRedirection();
-app.UseMiddleware<SecurityMiddleware>();
+// app.UseMiddleware<SecurityMiddleware>();
 app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseRouting();
 app.UseAuthentication();
