@@ -2,8 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
 
-
 using Actuli.Api.DbContext;
+using Actuli.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 var environment = builder.Environment;
@@ -90,7 +90,7 @@ else
 app.UseCors("AllowReactApp");
 
 // app.UseHttpsRedirection();
-
+app.UseMiddleware<SecurityMiddleware>();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
