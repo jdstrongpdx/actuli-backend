@@ -91,6 +91,7 @@ app.UseCors("AllowReactApp");
 
 // app.UseHttpsRedirection();
 app.UseMiddleware<SecurityMiddleware>();
+app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
