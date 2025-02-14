@@ -91,7 +91,7 @@ public class ApplicationUserController : ControllerBase
     {
         Guid userId = GetUserId();
         var applicationUser = await _applicationUserDbContext.ApplicationUsers!
-            .FirstOrDefaultAsync(user => IsAppMakingRequest() && user.UserId == userId);
+            .FirstOrDefaultAsync(user => user.UserId == userId);
 
         if (applicationUser is null)
         {
@@ -113,21 +113,41 @@ public class ApplicationUserController : ControllerBase
     )]
     public async Task<IActionResult> PutAsync([FromBody] ApplicationUser applicationUser)
     {
+        // Get the current user's ID
         Guid userId = GetUserId();
+
+        // Load the stored user from the database
         var storedApplicationUser = await _applicationUserDbContext.ApplicationUsers!
-            .FirstOrDefaultAsync(user => IsAppMakingRequest() && user.UserId == userId);
+            .FirstOrDefaultAsync(user => user.UserId == userId);
 
         if (storedApplicationUser is null)
         {
-            return NotFound();
+            return NotFound("User not found.");
         }
-        
-        // TODO: NEED TO IMPLEMENT SPREAD OPERATOR BEHAVIOR
-        // ensure id matches guid
-        // calculate age and address
-        storedApplicationUser = applicationUser;
-        _applicationUserDbContext.ApplicationUsers!.Update(storedApplicationUser);
 
+        // Manually update properties of the stored entity
+        storedApplicationUser.Username = applicationUser.Username ?? storedApplicationUser.Username;
+        storedApplicationUser.Name = applicationUser.Name ?? storedApplicationUser.Name;
+        storedApplicationUser.Email = applicationUser.Email ?? storedApplicationUser.Email;
+        storedApplicationUser.FirstName = applicationUser.FirstName ?? storedApplicationUser.FirstName;
+        storedApplicationUser.LastName = applicationUser.LastName ?? storedApplicationUser.LastName;
+        storedApplicationUser.Address1 = applicationUser.Address1 ?? storedApplicationUser.Address1;
+        storedApplicationUser.Address2 = applicationUser.Address2 ?? storedApplicationUser.Address2;
+        storedApplicationUser.City = applicationUser.City ?? storedApplicationUser.City;
+        storedApplicationUser.State = applicationUser.State ?? storedApplicationUser.State;
+        storedApplicationUser.PostalCode = applicationUser.PostalCode ?? storedApplicationUser.PostalCode;
+        storedApplicationUser.Country = applicationUser.Country ?? storedApplicationUser.Country;
+        storedApplicationUser.DateOfBirth = applicationUser.DateOfBirth ?? storedApplicationUser.DateOfBirth;
+        storedApplicationUser.HomePhone = applicationUser.HomePhone ?? storedApplicationUser.HomePhone;
+        storedApplicationUser.MobilePhone = applicationUser.MobilePhone ?? storedApplicationUser.MobilePhone;
+        storedApplicationUser.Website = applicationUser.Website ?? storedApplicationUser.Website;
+
+        // Recalculate any derived fields
+        storedApplicationUser.GenerateAddress();
+        storedApplicationUser.GenerateAge();
+        storedApplicationUser.ModifiedAt = DateTime.UtcNow; 
+
+        // Save changes to the database
         await _applicationUserDbContext.SaveChangesAsync();
 
         return Ok(storedApplicationUser);
@@ -142,7 +162,7 @@ public class ApplicationUserController : ControllerBase
     {
         Guid userId = GetUserId();
         var applicationUserToDelete = await _applicationUserDbContext.ApplicationUsers!
-            .FirstOrDefaultAsync(user => IsAppMakingRequest() && user.UserId == userId);
+            .FirstOrDefaultAsync(user => user.UserId == userId);
 
         if (applicationUserToDelete is null)
         {

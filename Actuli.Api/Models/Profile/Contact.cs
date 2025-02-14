@@ -14,7 +14,9 @@ public class Contact
 
     [JsonPropertyName("lastName")] public string? LastName { get; set; }
 
-    [JsonPropertyName("street")] public string? Street { get; set; }
+    [JsonPropertyName("address1")] public string? Address1 { get; set; }
+    
+    [JsonPropertyName("address2")] public string? Address2 { get; set; }
 
     [JsonPropertyName("city")] public string? City { get; set; }
 
@@ -50,9 +52,9 @@ public class Contact
 
     public void GenerateAddress()
     {
-        if (string.IsNullOrEmpty(Address) && !string.IsNullOrEmpty(Street))
+        if (string.IsNullOrEmpty(Address) && !string.IsNullOrEmpty(Address1))
         {
-            Address = AddressGenerator.GenerateAddress(Street, City, State, PostalCode, Country);
+            Address = AddressGenerator.GenerateAddress(Address1, Address2, City, State, PostalCode, Country);
         }
     }
     

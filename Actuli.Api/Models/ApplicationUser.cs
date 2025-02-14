@@ -5,7 +5,8 @@ using Actuli.Api.Utilities;
 
 public class ApplicationUser (Guid UserId)
 {
-    [Key] public Guid UserId { get; set; } = UserId; // Derived from oid (user's object id) in Azure AD
+    [Key] 
+    public Guid UserId { get; set; } = UserId; // Derived from oid (user's object id) in Azure AD
     
     [JsonPropertyName("username")] public string? Username { get; set; } // Derived from preferred_username in Azure AD
     
@@ -19,7 +20,9 @@ public class ApplicationUser (Guid UserId)
 
     [JsonPropertyName("lastName")] public string? LastName { get; set; }
 
-    [JsonPropertyName("street")] public string? Street { get; set; }
+    [JsonPropertyName("address1")] public string? Address1 { get; set; }
+    
+    [JsonPropertyName("address2")] public string? Address2 { get; set; }
 
     [JsonPropertyName("city")] public string? City { get; set; }
 
@@ -55,9 +58,9 @@ public class ApplicationUser (Guid UserId)
 
     public void GenerateAddress()
     {
-        if (string.IsNullOrEmpty(Address) && !string.IsNullOrEmpty(Street))
+        if (string.IsNullOrEmpty(Address) && !string.IsNullOrEmpty(Address1))
         {
-            Address = AddressGenerator.GenerateAddress(Street, City, State, PostalCode, Country);
+            Address = AddressGenerator.GenerateAddress(Address1, Address2, City, State, PostalCode, Country);
         }
     }
     
