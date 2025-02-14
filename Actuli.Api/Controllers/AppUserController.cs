@@ -1,27 +1,23 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.Resource;
 using Actuli.Api.Models;
-using Actuli.Api.DbContext;
+using Actuli.Api.Services;
+using Microsoft.Azure.Cosmos;
 
 namespace Actuli.Api.Controllers;
 
 [Authorize]
 [Route("api/user")]
 [ApiController]
-public class ApplicationUserController : ControllerBase
+public class AppUserController : ControllerBase
 {
-    private readonly ApplicationUserDbContext _applicationUserDbContext;
+    private readonly CosmosDbService _cosmosDbService;
 
-    public ApplicationUserController(ApplicationUserDbContext applicationUserContext)
+    public AppUserController(CosmosDbService cosmosDbService)
     {
-        _applicationUserDbContext = applicationUserContext;
+        _cosmosDbService = cosmosDbService;
     }
 
     /// <summary>
@@ -89,18 +85,22 @@ public class ApplicationUserController : ControllerBase
     )]
     public async Task<IActionResult> GetAsync()
     {
-        Guid userId = GetUserId();
-        var applicationUser = await _applicationUserDbContext.ApplicationUsers!
-            .FirstOrDefaultAsync(user => user.UserId == userId);
+        string userId = GetUserId().ToString();
+        AppUser applicationUser = await _cosmosDbService.GetItemAsync<AppUser>(userId);
 
         if (applicationUser is null)
         {
-            // TODO: NEED TO CREATE USER ON SIGNUP AND REMOVE THIS SECTION
-            applicationUser = new ApplicationUser(userId);
-            await _applicationUserDbContext.ApplicationUsers!.AddAsync(applicationUser);
-
-            await _applicationUserDbContext.SaveChangesAsync();
-            // return NotFound();
+            try
+            {
+                // TODO: NEED TO CREATE USER ON SIGNUP AND REMOVE THIS SECTION
+                applicationUser = new AppUser(userId);
+                await _cosmosDbService.AddItemAsync(applicationUser);
+            }
+            catch (CosmosException ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                Console.WriteLine($"Request Diagnostics: {ex.Diagnostics}");
+            }
         }
 
         return Ok(applicationUser);
@@ -111,44 +111,42 @@ public class ApplicationUserController : ControllerBase
         RequiredScopesConfigurationKey = "AzureAD:Scopes:Write",
         RequiredAppPermissionsConfigurationKey = "AzureAD:AppPermissions:Write"
     )]
-    public async Task<IActionResult> PutAsync([FromBody] ApplicationUser applicationUser)
+    public async Task<IActionResult> PutAsync([FromBody] AppUser appUser)
     {
-        // Get the current user's ID
-        Guid userId = GetUserId();
+        string userId = GetUserId().ToString();
 
-        // Load the stored user from the database
-        var storedApplicationUser = await _applicationUserDbContext.ApplicationUsers!
-            .FirstOrDefaultAsync(user => user.UserId == userId);
+        // Load the stored user
+        var storedApplicationUser = await _cosmosDbService.GetItemAsync<AppUser>(userId);
 
         if (storedApplicationUser is null)
         {
             return NotFound("User not found.");
         }
 
-        // Manually update properties of the stored entity
-        storedApplicationUser.Username = applicationUser.Username ?? storedApplicationUser.Username;
-        storedApplicationUser.Name = applicationUser.Name ?? storedApplicationUser.Name;
-        storedApplicationUser.Email = applicationUser.Email ?? storedApplicationUser.Email;
-        storedApplicationUser.FirstName = applicationUser.FirstName ?? storedApplicationUser.FirstName;
-        storedApplicationUser.LastName = applicationUser.LastName ?? storedApplicationUser.LastName;
-        storedApplicationUser.Address1 = applicationUser.Address1 ?? storedApplicationUser.Address1;
-        storedApplicationUser.Address2 = applicationUser.Address2 ?? storedApplicationUser.Address2;
-        storedApplicationUser.City = applicationUser.City ?? storedApplicationUser.City;
-        storedApplicationUser.State = applicationUser.State ?? storedApplicationUser.State;
-        storedApplicationUser.PostalCode = applicationUser.PostalCode ?? storedApplicationUser.PostalCode;
-        storedApplicationUser.Country = applicationUser.Country ?? storedApplicationUser.Country;
-        storedApplicationUser.DateOfBirth = applicationUser.DateOfBirth ?? storedApplicationUser.DateOfBirth;
-        storedApplicationUser.HomePhone = applicationUser.HomePhone ?? storedApplicationUser.HomePhone;
-        storedApplicationUser.MobilePhone = applicationUser.MobilePhone ?? storedApplicationUser.MobilePhone;
-        storedApplicationUser.Website = applicationUser.Website ?? storedApplicationUser.Website;
+        // Update only non-null fields
+        storedApplicationUser.Username = appUser.Username ?? storedApplicationUser.Username;
+        storedApplicationUser.Name = appUser.Name ?? storedApplicationUser.Name;
+        storedApplicationUser.Profile.Contact.Email = appUser.Profile.Contact.Email ?? storedApplicationUser.Profile.Contact.Email;
+        storedApplicationUser.Profile.Contact.FirstName = appUser.Profile.Contact.FirstName ?? storedApplicationUser.Profile.Contact.FirstName;
+        storedApplicationUser.Profile.Contact.LastName = appUser.Profile.Contact.LastName ?? storedApplicationUser.Profile.Contact.LastName;
+        storedApplicationUser.Profile.Contact.Address1 = appUser.Profile.Contact.Address1 ?? storedApplicationUser.Profile.Contact.Address1;
+        storedApplicationUser.Profile.Contact.Address2 = appUser.Profile.Contact.Address2 ?? storedApplicationUser.Profile.Contact.Address2;
+        storedApplicationUser.Profile.Contact.City = appUser.Profile.Contact.City ?? storedApplicationUser.Profile.Contact.City;
+        storedApplicationUser.Profile.Contact.State = appUser.Profile.Contact.State ?? storedApplicationUser.Profile.Contact.State;
+        storedApplicationUser.Profile.Contact.PostalCode = appUser.Profile.Contact.PostalCode ?? storedApplicationUser.Profile.Contact.PostalCode;
+        storedApplicationUser.Profile.Contact.Country = appUser.Profile.Contact.Country ?? storedApplicationUser.Profile.Contact.Country;
+        storedApplicationUser.Profile.Contact.DateOfBirth = appUser.Profile.Contact.DateOfBirth ?? storedApplicationUser.Profile.Contact.DateOfBirth;
+        storedApplicationUser.Profile.Contact.HomePhone = appUser.Profile.Contact.HomePhone ?? storedApplicationUser.Profile.Contact.HomePhone;
+        storedApplicationUser.Profile.Contact.MobilePhone = appUser.Profile.Contact.MobilePhone ?? storedApplicationUser.Profile.Contact.MobilePhone;
+        storedApplicationUser.Profile.Contact.Website = appUser.Profile.Contact.Website ?? storedApplicationUser.Profile.Contact.Website;
 
-        // Recalculate any derived fields
-        storedApplicationUser.GenerateAddress();
-        storedApplicationUser.GenerateAge();
-        storedApplicationUser.ModifiedAt = DateTime.UtcNow; 
+        // Recalculate derived fields
+        storedApplicationUser.Profile.Contact.GenerateAddress();
+        storedApplicationUser.Profile.Contact.GenerateAge();
+        storedApplicationUser.ModifiedAt = DateTime.UtcNow;
 
-        // Save changes to the database
-        await _applicationUserDbContext.SaveChangesAsync();
+        // Save updates through the service
+        await _cosmosDbService.UpdateItemAsync(userId, storedApplicationUser);
 
         return Ok(storedApplicationUser);
     }
@@ -160,19 +158,16 @@ public class ApplicationUserController : ControllerBase
     )]
     public async Task<IActionResult> DeleteAsync()
     {
-        Guid userId = GetUserId();
-        var applicationUserToDelete = await _applicationUserDbContext.ApplicationUsers!
-            .FirstOrDefaultAsync(user => user.UserId == userId);
+        string userId = GetUserId().ToString();
+        var applicationUserToDelete = await _cosmosDbService.GetItemAsync<AppUser>(userId);
 
         if (applicationUserToDelete is null)
         {
             return NotFound();
         }
 
-        _applicationUserDbContext.ApplicationUsers!.Remove(applicationUserToDelete);
-
-        await _applicationUserDbContext.SaveChangesAsync();
-
-        return Ok();
+        // Delete the user through the service
+        await _cosmosDbService.DeleteItemAsync(userId);
+        return NoContent();
     }
 }

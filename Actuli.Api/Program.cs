@@ -1,8 +1,8 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
-using Actuli.Api.DbContext;
 using Actuli.Api.Middleware;
+using Microsoft.Azure.Cosmos;
+using Actuli.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 var isDevelopment = builder.Environment.IsDevelopment();
@@ -40,10 +40,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 //};
             }, options => { builder.Configuration.Bind("AzureAd", options); });
 
+// Add Cosmos DB client
+builder.Services.AddSingleton(s => 
+    new CosmosClient(builder.Configuration.GetConnectionString("CosmosDB")));
 
-builder.Services.AddDbContext<ApplicationUserDbContext>(options =>
+builder.Services.AddSingleton(sp =>
 {
-    options.UseInMemoryDatabase("ActuliDb");
+    var configuration = sp.GetRequiredService<IConfiguration>();
+    var cosmosClient = sp.GetRequiredService<CosmosClient>();
+    var databaseName = configuration["CosmosDb:DatabaseName"];
+    var containerName = configuration["CosmosDb:ContainerName"];
+    return new CosmosDbService(cosmosClient, databaseName, containerName);
 });
 
 builder.Services.AddControllers();
