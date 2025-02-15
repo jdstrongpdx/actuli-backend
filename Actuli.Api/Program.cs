@@ -1,8 +1,12 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
+
 using Actuli.Api.Middleware;
+using Actuli.Api.Models;
+using Actuli.Api.Repositories;
 using Microsoft.Azure.Cosmos;
 using Actuli.Api.Services;
+using Actuli.Api.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 var isDevelopment = builder.Environment.IsDevelopment();
@@ -41,17 +45,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             }, options => { builder.Configuration.Bind("AzureAd", options); });
 
 // Add Cosmos DB client
-builder.Services.AddSingleton(s => 
+builder.Services.AddSingleton(s =>
     new CosmosClient(builder.Configuration.GetConnectionString("CosmosDB")));
 
-builder.Services.AddSingleton(sp =>
+// Register Generic CosmosDb Repository
+builder.Services.AddSingleton<ICosmosDbRepository<AppUser>>(sp =>
 {
     var configuration = sp.GetRequiredService<IConfiguration>();
     var cosmosClient = sp.GetRequiredService<CosmosClient>();
-    var databaseName = configuration["CosmosDb:DatabaseName"];
-    var containerName = configuration["CosmosDb:ContainerName"];
-    return new CosmosDbService(cosmosClient, databaseName, containerName);
+    return new CosmosDbRepository<AppUser>(cosmosClient, configuration);
 });
+
+// Register AppUser specific service
+builder.Services.AddScoped<IAppUserService, AppUserService>();
 
 builder.Services.AddControllers();
 

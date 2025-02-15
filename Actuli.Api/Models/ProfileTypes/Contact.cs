@@ -3,6 +3,8 @@ using System.ComponentModel.DataAnnotations;
 using Actuli.Api.Utilities;
 using Newtonsoft.Json;
 
+namespace Actuli.Api.Models.ProfileTypes;
+
 public class Contact
 {
     [JsonProperty("email")]

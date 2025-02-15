@@ -1,6 +1,5 @@
-using System.ComponentModel.DataAnnotations;
+using Actuli.Api.Models;
 using Newtonsoft.Json;
-using Actuli.Api.Utilities;
 
 namespace Actuli.Api.Models;
 
@@ -12,16 +11,39 @@ public class AppUser
     }
     
     [JsonProperty("id")]
-    public string Id { get; set; }  // Derived from oid (user's object id) in Azure AD
+    public string Id { get; set; }
+    
+    [JsonProperty("username")]
+    public string Username { get; set; }
+    
+    [JsonProperty("name")]
+    public string Name { get; set; }
     
     [JsonProperty("profile")]
     public Profile Profile { get; set; } = new();
-    [JsonProperty("username")]
-    public string? Username { get; set; } // Derived from preferred_username in Azure AD
-    [JsonProperty("name")]
-    public string? Name { get; set; } // Derived from name in Azure AD
+    
+    [JsonProperty("overview")]
+    public Overview Overview { get; set; } = new();
+    
+    [JsonProperty("goals")]
+    public List<Goal> Goals { get; set; } = new();
+    
+    [JsonProperty("accomplishments")]
+    public List<Accomplishment> Accomplishments { get; set; } = new();
+    
     [JsonProperty("createdAt")]
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? CreatedAt { get; set; }
+    
     [JsonProperty("modifiedAt")]
-    public DateTime ModifiedAt { get; set; } = DateTime.UtcNow; 
+    public DateTime? ModifiedAt { get; set; }
+    
+    public void MarkAsCreated()
+    {
+        CreatedAt = DateTime.UtcNow;
+    }
+    public void MarkAsModified()
+    {
+        ModifiedAt = DateTime.UtcNow;
+    }
+
 }

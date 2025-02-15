@@ -1,50 +1,32 @@
-using Newtonsoft.Json;
+using Actuli.Api.Interfaces;
 using Actuli.Api.Models;
 using Microsoft.AspNetCore.Mvc;
-using Actuli.Api.Services;
 
-namespace Actuli.Api.DbContext;
-
-
-
-using Microsoft.Identity.Web;
-
+namespace Actuli.Api.Controllers;
 
 [ApiController]
 [Route("api/users")]
 public class AppUsersController : ControllerBase
 {
-    private readonly CosmosDbService _cosmosDbService;
+    private readonly IAppUserService _appUserService;
 
-    public AppUsersController(CosmosDbService cosmosDbService)
+    public AppUsersController(IAppUserService appUserService)
     {
-        _cosmosDbService = cosmosDbService;
-    }
-    
-    private Guid GetUserId()
-    {
-        Guid userId;
-
-        if (!Guid.TryParse(HttpContext.User.GetObjectId(), out userId))
-        {
-            throw new Exception("User ID is not valid.");
-        }
-
-        return userId;
+        _appUserService = appUserService;
     }
 
-    [HttpPost]
-    public async Task<IActionResult> CreateItem([FromBody] AppUser appUser)
+    [HttpPost("{id}")]
+    public async Task<IActionResult> CreateItem(string id, [FromBody] AppUser appUser)
     {
-        appUser.Id = "12345";
-        await _cosmosDbService.AddItemAsync(appUser);
+        appUser.Id = id;
+        await _appUserService.AddUserAsync(appUser);
         return Ok();
     }
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetItem(string id)
     {
-        var appUser = await _cosmosDbService.GetItemAsync<AppUser>(id);
+        var appUser = await _appUserService.GetUserByIdAsync(id);
         if (appUser == null) return NotFound();
         return Ok(appUser);
     }
@@ -52,7 +34,7 @@ public class AppUsersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAllItems()
     {
-        var items = await _cosmosDbService.GetAllItemsAsync<AppUser>();
+        var items = await _appUserService.GetAllUsersAsync();
         return Ok(items);
     }
 
@@ -60,14 +42,14 @@ public class AppUsersController : ControllerBase
     public async Task<IActionResult> UpdateItem(string id, [FromBody] AppUser appUser)
     {
         appUser.Id = id;
-        await _cosmosDbService.UpdateItemAsync(id, appUser);
+        await _appUserService.UpdateUserAsync(id, appUser);
         return Ok();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteItem(string id)
     {
-        await _cosmosDbService.DeleteItemAsync(id);
+        await _appUserService.DeleteUserAsync(id);
         return NoContent();
     }
 }
