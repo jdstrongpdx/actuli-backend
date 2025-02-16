@@ -6,105 +6,131 @@ namespace Actuli.Tests.Utilities;
 public class AddressGeneratorTests
 {
     [Fact]
-    public void GenerateAddress_ShouldReturnFormattedAddress_WhenAllFieldsAreProvided()
+    public void GenerateAddress_ShouldReturnFormattedAddress_WhenAllFieldsAreValid()
     {
         // Arrange
-        var street = "123 Main St";
-        var city = "Sample City";
-        var state = "Sample State";
-        var postalCode = "12345";
-        var country = "Sample Country";
+        string address1 = "123 Main St";
+        string address2 = "Apt 4B";
+        string city = "Springfield";
+        string state = "IL";
+        string postalCode = "62704";
+        string country = "USA";
 
         // Act
-        var result = AddressGenerator.GenerateAddress(street, city, state, postalCode, country);
+        var result = AddressGenerator.GenerateAddress(address1, address2, city, state, postalCode, country);
 
         // Assert
-        var expected = "123 Main St\nSample City, Sample State 12345\nSample Country";
-        Assert.Equal(expected, result);
+        var expectedAddress = "123 Main St\nApt 4B\nSpringfield, IL 62704\nUSA";
+        Assert.Equal(expectedAddress, result);
     }
 
     [Fact]
-    public void GenerateAddress_ShouldOmitCountry_WhenCountryIsEmpty()
+    public void GenerateAddress_ShouldNotIncludeAddress2_WhenAddress2IsNullOrEmpty()
     {
         // Arrange
-        var street = "123 Main St";
-        var city = "Sample City";
-        var state = "Sample State";
-        var postalCode = "12345";
-        var country = string.Empty;
+        string address1 = "123 Main St";
+        string address2 = null; // Address2 is null
+        string city = "Springfield";
+        string state = "IL";
+        string postalCode = "62704";
+        string country = "USA";
 
         // Act
-        var result = AddressGenerator.GenerateAddress(street, city, state, postalCode, country);
+        var result = AddressGenerator.GenerateAddress(address1, address2, city, state, postalCode, country);
 
         // Assert
-        var expected = "123 Main St\nSample City, Sample State 12345";
-        Assert.Equal(expected, result);
+        var expectedAddress = "123 Main St\nSpringfield, IL 62704\nUSA";
+        Assert.Equal(expectedAddress, result);
     }
 
     [Fact]
-    public void GenerateAddress_ShouldReturnEmptyString_WhenAnyRequiredFieldIsMissing()
-    {
-        // Act & Assert
-        Assert.Equal(string.Empty,
-            AddressGenerator.GenerateAddress("", "City", "State", "12345", "Country")); // Missing Street
-        Assert.Equal(string.Empty,
-            AddressGenerator.GenerateAddress("123 Main St", "", "State", "12345", "Country")); // Missing City
-        Assert.Equal(string.Empty,
-            AddressGenerator.GenerateAddress("123 Main St", "City", "", "12345", "Country")); // Missing State
-        Assert.Equal(string.Empty,
-            AddressGenerator.GenerateAddress("123 Main St", "City", "State", "", "Country")); // Missing PostalCode
-    }
-
-    [Fact]
-    public void GenerateAddress_ShouldReturnEmptyString_WhenFieldsContainOnlyWhitespace()
+    public void GenerateAddress_ShouldNotIncludeCountry_WhenCountryIsNullOrEmpty()
     {
         // Arrange
-        var street = "  ";
-        var city = "  ";
-        var state = "  ";
-        var postalCode = "  ";
-        var country = "Sample Country";
+        string address1 = "123 Main St";
+        string address2 = "Apt 4B";
+        string city = "Springfield";
+        string state = "IL";
+        string postalCode = "62704";
+        string country = ""; // Country is empty
 
         // Act
-        var result = AddressGenerator.GenerateAddress(street, city, state, postalCode, country);
+        var result = AddressGenerator.GenerateAddress(address1, address2, city, state, postalCode, country);
+
+        // Assert
+        var expectedAddress = "123 Main St\nApt 4B\nSpringfield, IL 62704";
+        Assert.Equal(expectedAddress, result);
+    }
+
+    [Fact]
+    public void GenerateAddress_ShouldReturnEmptyString_WhenMandatoryFieldsAreMissing()
+    {
+        // Arrange
+        string address1 = ""; // Address1 is empty
+        string address2 = "Apt 4B";
+        string city = "Springfield";
+        string state = "IL";
+        string postalCode = "62704";
+        string country = "USA";
+
+        // Act
+        var result = AddressGenerator.GenerateAddress(address1, address2, city, state, postalCode, country);
 
         // Assert
         Assert.Equal(string.Empty, result);
     }
 
     [Fact]
-    public void GenerateAddress_ShouldHandleNullValuesForOptionalFields()
+    public void GenerateAddress_ShouldReturnEmptyString_WhenCityIsNullOrEmpty()
     {
         // Arrange
-        var street = "123 Main St";
-        var city = "Sample City";
-        var state = "Sample State";
-        var postalCode = "12345";
-        string? country = null;
+        string address1 = "123 Main St";
+        string address2 = "Apt 4B";
+        string city = ""; // City is empty
+        string state = "IL";
+        string postalCode = "62704";
+        string country = "USA";
 
         // Act
-        var result = AddressGenerator.GenerateAddress(street, city, state, postalCode, country);
+        var result = AddressGenerator.GenerateAddress(address1, address2, city, state, postalCode, country);
 
         // Assert
-        var expected = "123 Main St\nSample City, Sample State 12345";
-        Assert.Equal(expected, result);
+        Assert.Equal(string.Empty, result);
     }
 
     [Fact]
-    public void GenerateAddress_ShouldNormalizeFormatting_WhenFieldsAreIncomplete()
+    public void GenerateAddress_ShouldReturnEmptyString_WhenStateIsNullOrEmpty()
     {
         // Arrange
-        var street = "123 Main St";
-        var city = "Sample City";
-        var state = "Sample State";
-        var postalCode = "12345";
-        var country = "   "; // Whitespace country
+        string address1 = "123 Main St";
+        string address2 = "Apt 4B";
+        string city = "Springfield";
+        string state = ""; // State is empty
+        string postalCode = "62704";
+        string country = "USA";
 
         // Act
-        var result = AddressGenerator.GenerateAddress(street, city, state, postalCode, country);
+        var result = AddressGenerator.GenerateAddress(address1, address2, city, state, postalCode, country);
 
         // Assert
-        var expected = "123 Main St\nSample City, Sample State 12345";
-        Assert.Equal(expected, result);
+        Assert.Equal(string.Empty, result);
+    }
+
+    [Fact]
+    public void GenerateAddress_ShouldReturnEmptyString_WhenPostalCodeIsNullOrEmpty()
+    {
+        // Arrange
+        string address1 = "123 Main St";
+        string address2 = "Apt 4B";
+        string city = "Springfield";
+        string state = "IL";
+        string postalCode = ""; // PostalCode is empty
+        string country = "USA";
+
+        // Act
+        var result = AddressGenerator.GenerateAddress(address1, address2, city, state, postalCode, country);
+
+        // Assert
+        Assert.Equal(string.Empty, result);
     }
 }

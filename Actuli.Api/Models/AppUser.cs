@@ -3,15 +3,9 @@ using Newtonsoft.Json;
 
 namespace Actuli.Api.Models;
 
-public class AppUser
+public class AppUser(string id)
 {
-    public AppUser(string id)
-    {
-        Id = id;
-    }
-    
-    [JsonProperty("id")]
-    public string Id { get; set; }
+    [JsonProperty("id")] public string Id { get; set; } = id;
     
     [JsonProperty("username")]
     public string Username { get; set; }
@@ -32,15 +26,11 @@ public class AppUser
     public List<Accomplishment> Accomplishments { get; set; } = new List<Accomplishment>();
     
     [JsonProperty("createdAt")]
-    public DateTime? CreatedAt { get; set; }
+    public DateTime? CreatedAt { get; } = DateTime.UtcNow;
     
     [JsonProperty("modifiedAt")]
-    public DateTime? ModifiedAt { get; set; }
+    public DateTime? ModifiedAt { get; set; } = DateTime.UtcNow;
     
-    public void MarkAsCreated()
-    {
-        CreatedAt = DateTime.UtcNow;
-    }
     public void MarkAsModified()
     {
         ModifiedAt = DateTime.UtcNow;

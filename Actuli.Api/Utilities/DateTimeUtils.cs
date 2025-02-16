@@ -2,20 +2,21 @@ namespace Actuli.Api.Utilities;
 
 public static class DateTimeUtils
 {
-    public static int CalculateAge(DateTime birthDate, DateTime? endDate = null)
+    public static int CalculateAge(DateTime birthDate, DateTime? currentDate = null)
     {
-        // Use the current date if none is provided
-        DateTime now = endDate ?? DateTime.Now;
+        // Use the current date if no date is passed in
+        DateTime effectiveDate = currentDate ?? DateTime.Today;
 
-        // Calculate the basic difference in years
-        int age = now.Year - birthDate.Year;
+        // Calculate the preliminary age
+        int age = effectiveDate.Year - birthDate.Year;
 
-        // Check if the birth date hasn't occurred yet in the current year
-        if (now.Month < birthDate.Month || (now.Month == birthDate.Month && now.Day < birthDate.Day))
+        // If the person's birthday hasn't occurred yet this year, subtract 1
+        if (effectiveDate < birthDate.AddYears(age))
         {
             age--;
         }
 
-        return age;
+        // Handle negative ages (where the birth date is in the future)
+        return age < 0 ? 0 : age;
     }
 }

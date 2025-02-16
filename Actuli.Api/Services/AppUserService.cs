@@ -14,7 +14,6 @@ public class AppUserService : IAppUserService
 
     public async Task AddUserAsync(AppUser user)
     {
-        user.MarkAsCreated();
         user.MarkAsModified();
         await _appUserRepository.AddItemAsync(user);
     }
