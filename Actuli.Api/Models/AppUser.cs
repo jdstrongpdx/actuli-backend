@@ -26,10 +26,10 @@ public class AppUser
     public Overview Overview { get; set; } = new();
     
     [JsonProperty("goals")]
-    public List<Goal> Goals { get; set; } = new();
+    public List<Goal> Goals { get; set; } = new List<Goal>();
     
     [JsonProperty("accomplishments")]
-    public List<Accomplishment> Accomplishments { get; set; } = new();
+    public List<Accomplishment> Accomplishments { get; set; } = new List<Accomplishment>();
     
     [JsonProperty("createdAt")]
     public DateTime? CreatedAt { get; set; }
