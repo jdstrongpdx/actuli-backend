@@ -9,7 +9,7 @@ public class TestModel
     public string Name { get; set; } = default!;
 }
 
-public class CosmosDbRepositoryTests
+public class ICosmosDbRepositoryTests
 {
     [Fact]
     public async Task AddItemAsync_ShouldInvokeRepositoryMethodWithCorrectParameters()

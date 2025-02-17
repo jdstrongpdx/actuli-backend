@@ -118,9 +118,6 @@ public class ProfileController : ControllerBase
         storedAppUser.Profile.Contact.GenerateAddress();
         storedAppUser.Profile.Contact.GenerateAge();
 
-        // Mark user as modified
-        storedAppUser.MarkAsModified();
-
         // Save updates through the service
         await _appUserService.UpdateUserAsync(userId, storedAppUser);
 

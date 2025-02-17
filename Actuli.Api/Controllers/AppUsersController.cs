@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Actuli.Api.Controllers;
 
+// TODO: NEED TO ADD ADMIN/DEV ROLE TO ALL ROUTES
+
 [ApiController]
 [Route("api/users")]
 public class AppUsersController : ControllerBase
