@@ -1,0 +1,45 @@
+[
+  {
+    "id": 1,
+    "name": "States",
+    "description": "A list of states in the United States",
+    "version": 1,
+    "data": [
+      {
+        "id": 1,
+        "value": "Oregon"
+      },
+      {
+        "id": 2,
+        "value": "California"
+      },
+      {
+        "id": 3,
+        "value": "Washington"
+      }
+    ],
+
+    "lastUpdated": null
+  },
+  {
+    "id": 2,
+    "name": "Genders",
+    "description": "Service category",
+    "version": 2,
+    "data": [
+      {
+        "id": 1,
+        "value": "Male"
+      },
+      {
+        "id": 2,
+        "value": "Female"
+      },
+      {
+        "id": 3,
+        "value": "Other"
+      }
+    ],
+    "lastUpdated": null
+  }
+]

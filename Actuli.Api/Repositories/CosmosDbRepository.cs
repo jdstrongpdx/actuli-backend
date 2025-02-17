@@ -8,10 +8,18 @@ namespace Actuli.Api.Repositories
     {
         private readonly Container _container;
 
-        public CosmosDbRepository(CosmosClient cosmosClient, IConfiguration configuration)
+        public CosmosDbRepository(CosmosClient cosmosClient, string databaseName, string containerName)
         {
-            var databaseName = configuration["CosmosDb:DatabaseName"];
-            var containerName = configuration["CosmosDb:ContainerName"];
+            if (string.IsNullOrWhiteSpace(databaseName))
+            {
+                throw new ArgumentException("Database name cannot be null or empty.", nameof(databaseName));
+            }
+
+            if (string.IsNullOrWhiteSpace(containerName))
+            {
+                throw new ArgumentException("Container name cannot be null or empty.", nameof(containerName));
+            }
+
             _container = cosmosClient.GetContainer(databaseName, containerName);
         }
 

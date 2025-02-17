@@ -7,6 +7,7 @@ using Actuli.Api.Repositories;
 using Microsoft.Azure.Cosmos;
 using Actuli.Api.Services;
 using Actuli.Api.Interfaces;
+using Actuli.Api.Types;
 
 var builder = WebApplication.CreateBuilder(args);
 var isDevelopment = builder.Environment.IsDevelopment();
@@ -48,16 +49,38 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddSingleton(s =>
     new CosmosClient(builder.Configuration.GetConnectionString("CosmosDB")));
 
-// Register Generic CosmosDb Repository
-builder.Services.AddSingleton<ICosmosDbRepository<AppUser>>(sp =>
+// Register ICosmosDbRepository<AppUser> with AppUser container
+builder.Services.AddSingleton<ICosmosDbRepository<AppUser>>(provider =>
 {
-    var configuration = sp.GetRequiredService<IConfiguration>();
-    var cosmosClient = sp.GetRequiredService<CosmosClient>();
-    return new CosmosDbRepository<AppUser>(cosmosClient, configuration);
+    var configuration = provider.GetRequiredService<IConfiguration>();
+    var cosmosDbConfig = configuration.GetSection("CosmosDb");
+
+    var databaseName = cosmosDbConfig.GetValue<string>("DatabaseName");
+    var containerName = cosmosDbConfig.GetSection("Containers").GetValue<string>("AppUser");
+
+    var cosmosClient = provider.GetRequiredService<CosmosClient>();
+    return new CosmosDbRepository<AppUser>(cosmosClient, databaseName, containerName);
 });
 
-// Register AppUser specific service
+// Register ICosmosDbRepository<TypeData> with TypeData container
+builder.Services.AddSingleton<ICosmosDbRepository<TypeData>>(provider =>
+{
+    var configuration = provider.GetRequiredService<IConfiguration>();
+    var cosmosDbConfig = configuration.GetSection("CosmosDb");
+
+    var databaseName = cosmosDbConfig.GetValue<string>("DatabaseName");
+    var containerName = cosmosDbConfig.GetSection("Containers").GetValue<string>("TypeData");
+
+    var cosmosClient = provider.GetRequiredService<CosmosClient>();
+    return new CosmosDbRepository<TypeData>(cosmosClient, databaseName, containerName);
+});
+
+
+// Register AppUser service
 builder.Services.AddScoped<IAppUserService, AppUserService>();
+
+// Register TypeData service
+builder.Services.AddScoped<ITypeDataService, TypeDataService>();
 
 builder.Services.AddControllers();
 
