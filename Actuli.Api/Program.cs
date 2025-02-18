@@ -7,7 +7,6 @@ using Actuli.Api.Repositories;
 using Microsoft.Azure.Cosmos;
 using Actuli.Api.Services;
 using Actuli.Api.Interfaces;
-using Actuli.Api.Types;
 
 var builder = WebApplication.CreateBuilder(args);
 var isDevelopment = builder.Environment.IsDevelopment();
@@ -63,7 +62,7 @@ builder.Services.AddSingleton<ICosmosDbRepository<AppUser>>(provider =>
 });
 
 // Register ICosmosDbRepository<TypeData> with TypeData container
-builder.Services.AddSingleton<ICosmosDbRepository<TypeData>>(provider =>
+builder.Services.AddSingleton<ICosmosDbRepository<TypeGroup>>(provider =>
 {
     var configuration = provider.GetRequiredService<IConfiguration>();
     var cosmosDbConfig = configuration.GetSection("CosmosDb");
@@ -72,7 +71,7 @@ builder.Services.AddSingleton<ICosmosDbRepository<TypeData>>(provider =>
     var containerName = cosmosDbConfig.GetSection("Containers").GetValue<string>("TypeData");
 
     var cosmosClient = provider.GetRequiredService<CosmosClient>();
-    return new CosmosDbRepository<TypeData>(cosmosClient, databaseName, containerName);
+    return new CosmosDbRepository<TypeGroup>(cosmosClient, databaseName, containerName);
 });
 
 
@@ -80,7 +79,7 @@ builder.Services.AddSingleton<ICosmosDbRepository<TypeData>>(provider =>
 builder.Services.AddScoped<IAppUserService, AppUserService>();
 
 // Register TypeData service
-builder.Services.AddScoped<ITypeDataService, TypeDataService>();
+builder.Services.AddScoped<ITypeService, TypeService>();
 
 builder.Services.AddControllers();
 
