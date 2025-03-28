@@ -16,4 +16,6 @@ public class Work
     public DateTime? EndDate { get; set; }
     public string Status { get; set; } // WORK_STATUS_LIST
     public string Description { get; set; }
+    public string? PersonalImportance { get; set; }
+    public string? Satisfaction { get; set; }
 }

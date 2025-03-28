@@ -13,5 +13,6 @@ public class Education
     public string? Grade { get; set; }
     public string? GradeScale { get; set; } // EDUCATION_GRADE_SCALE_LIST
     public string? Description { get; set; }
-    public string? Importance { get; set; }
+    public string? PersonalImportance { get; set; }
+    public string? CareerImportance { get; set; }
 }

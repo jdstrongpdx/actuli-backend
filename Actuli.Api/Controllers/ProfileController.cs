@@ -89,12 +89,6 @@ public class ProfileController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-
-        // Check for null input
-        if (contact is null)
-        {
-            return BadRequest("Contact is null.");
-        }
     
         string userId = GetUserId().ToString();
         var storedAppUser = await _appUserService.GetUserByIdAsync(userId);
@@ -135,12 +129,6 @@ public class ProfileController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-
-        // Check for null input
-        if (educationList is null)
-        {
-            return BadRequest("Education List is null.");
-        }
     
         string userId = GetUserId().ToString();
         var storedAppUser = await _appUserService.GetUserByIdAsync(userId);
@@ -177,12 +165,6 @@ public class ProfileController : ControllerBase
         {
             return BadRequest(ModelState);
         }
-
-        // Check for null input
-        if (workList is null)
-        {
-            return BadRequest("Work List is null.");
-        }
     
         string userId = GetUserId().ToString();
         var storedAppUser = await _appUserService.GetUserByIdAsync(userId);
@@ -201,6 +183,42 @@ public class ProfileController : ControllerBase
 
         // Update fields with non-null values from input
         storedAppUser.Profile.WorkList = workList;
+
+        // Save updates through the service
+        await _appUserService.UpdateUserAsync(userId, storedAppUser);
+
+        return Ok(storedAppUser);
+    }
+    
+    [HttpPut("relationship")]
+    [RequiredScopeOrAppPermission(
+        RequiredScopesConfigurationKey = "AzureAD:Scopes:Write",
+        RequiredAppPermissionsConfigurationKey = "AzureAD:AppPermissions:Write"
+    )]
+    public async Task<IActionResult> UpdateRelationshipList([FromBody, Required] List<Relationship> relationshipsList)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+    
+        string userId = GetUserId().ToString();
+        var storedAppUser = await _appUserService.GetUserByIdAsync(userId);
+
+        // Handle user not found
+        if (storedAppUser is null)
+        {
+            return NotFound("User not found.");
+        }
+
+        // Ensure Work List is not null
+        if (storedAppUser.Profile.RelationshipsList == null)
+        {
+            storedAppUser.Profile.RelationshipsList = new List<Relationship>();
+        }
+
+        // Update fields with non-null values from input
+        storedAppUser.Profile.RelationshipsList = relationshipsList;
 
         // Save updates through the service
         await _appUserService.UpdateUserAsync(userId, storedAppUser);
